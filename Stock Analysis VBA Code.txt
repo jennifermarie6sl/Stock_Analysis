@@ -1,0 +1,158 @@
+Attribute VB_Name = "Module1"
+Sub Stocks()
+
+For Each ws In Worksheets
+
+    'Definitions and Starting Values:
+    Dim Ticker_Letter As String
+    Dim Starting_Price As Double
+    Starting_Price = 0
+    Dim C_Pointer As Double
+    C_Pointer = 2
+    Dim Ending_Price As Double
+    Ending_Price = 0
+    Dim Ticker_Total As Double
+    Ticker_Total = 0
+    Dim Price_Change As Double
+    Price_Change = 0
+    Dim Percent_Change As Double
+    Percent_Change = 0
+            
+    'Title Summary Table
+    ws.Range("I1").Value = "Ticket"
+    ws.Range("J1").Value = "Price Change"
+    ws.Range("K1").Value = "Percent Change"
+    ws.Range("L1").Value = "Total Stock Volume"
+   
+   'Title Greatest Change Table
+    ws.Range("O2").Value = "Greatest Percent Increase"
+    ws.Range("O3").Value = "Greatest Percent Decrease"
+    ws.Range("O4").Value = "Greatest Total Stock Volume"
+    ws.Range("P1").Value = "Ticker"
+    ws.Range("Q1").Value = "Value"
+    
+   ' Keep track of the location for each ticker letter in the summary table
+    Dim Summary_Table_Row As Integer
+    Summary_Table_Row = 2
+  
+    lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+  
+  ' Loop through all stock updates
+    For i = 2 To lastrow
+    
+        'Check if we are still within the same ticker, if it is not...
+        If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+        
+            'Ticker_Total = Ticker_Total + ws.Cells(i, 7).Value
+            
+            'If Ticker_Total = 0 Then
+            
+            ' Set the Ticker Letter
+            Ticker_Letter = ws.Cells(i, 1).Value
+            'Hold Ending Price
+            Ending_Price = ws.Cells(i, 6).Value
+            ' Add to the Ticker Total
+            Ticker_Total = Ticker_Total + ws.Cells(i, 7).Value
+            
+            ' Calculate the difference from start of year to end of year
+            Price_Change = Ending_Price - Starting_Price
+          
+           If Starting_Price <> 0 Then
+                'Calculate the percent change from start of year to end of year
+            Percent_Change = Round((Price_Change / Starting_Price * 100), 3)
+                End If
+            
+             'Print Ranges:
+             'Print the Ticker Letter in the Summary Table
+             ws.Range("I" & Summary_Table_Row).Value = Ticker_Letter
+             'Print the Price Change in the Summary Table
+             ws.Range("J" & Summary_Table_Row).Value = Price_Change
+             'Print the Percent Change in the Summary Table
+             ws.Range("K" & Summary_Table_Row).Value = Percent_Change & "%"
+             'Print the Letter Total to the Summary Table
+             ws.Range("L" & Summary_Table_Row).Value = Ticker_Total
+             
+             'End If
+       
+                    'Colors the summary table based on gain or loss
+                    If Price_Change > 0 Then
+                        ws.Cells(Summary_Table_Row, "J").Interior.ColorIndex = 4
+                        ws.Cells(Summary_Table_Row, "J").Font.ColorIndex = 1
+                    ElseIf Price_Change < 0 Then
+                        ws.Cells(Summary_Table_Row, "J").Interior.ColorIndex = 3
+                        ws.Cells(Summary_Table_Row, "J").Font.ColorIndex = 1
+                    Else
+                        ws.Cells(Summary_Table_Row, "J").Interior.ColorIndex = 2
+                        ws.Cells(Summary_Table_Row, "J").Font.ColorIndex = 1
+                    End If
+            
+            'Add one to the summary table row
+            Summary_Table_Row = Summary_Table_Row + 1
+            
+            'Reset the Ticker Total
+            Ticker_Total = 0
+            
+            C_Pointer = i + 1
+            
+           ' If the cell immediately following a row is the same ticker letter...
+            Else
+                ' Add to the Ticker Total
+                Ticker_Total = Ticker_Total + ws.Cells(i, 7).Value
+                Starting_Price = ws.Cells(C_Pointer, "C").Value
+             End If
+             
+    Next i
+ 
+ summary_lastrow = ws.Cells(Rows.Count, "K").End(xlUp).Row
+
+    'Worksheet function MAX returns the largest value in a range
+        Dim Greatest_percent_increase As Double
+        Dim Greatest_percent_decrease As Double
+        Dim Greatest_Total As Double
+        Dim Greatest_Change_Ticker_Letter As String
+        
+        Greatest_percent_increase = 0
+        Greatest_percent_decrease = 0
+        Greatest_Total = 0
+        
+        For Row = 2 To summary_lastrow
+        
+            If ws.Cells(Row, "K").Value > Greatest_percent_increase Then
+                Greatest_percent_increase = ws.Cells(Row, "K").Value
+                Greatest_Change_Ticker_Letter = ws.Cells(Row, "I").Value
+            End If
+        Next Row
+        
+        ws.Range("Q2").Value = Greatest_percent_increase
+        ws.Range("P2").Value = Greatest_Change_Ticker_Letter
+
+        For Row = 2 To summary_lastrow
+        
+            If ws.Cells(Row, "K").Value < Greatest_percent_decrease Then
+                Greatest_percent_decrease = ws.Cells(Row, "K").Value
+                Greatest_Change_Ticker_Letter = ws.Cells(Row, "I").Value
+            End If
+        Next Row
+        
+        ws.Range("Q3").Value = Greatest_percent_decrease
+        ws.Range("P3").Value = Greatest_Change_Ticker_Letter
+        
+        For Row = 2 To summary_lastrow
+        
+            If ws.Cells(Row, "L").Value > Greatest_Total Then
+                Greatest_Total = ws.Cells(Row, "L").Value
+                Greatest_Change_Ticker_Letter = ws.Cells(Row, "I").Value
+            End If
+        Next Row
+        
+        ws.Range("Q4") = Greatest_Total
+        ws.Range("P4") = Greatest_Change_Ticker_Letter
+
+   ws.Columns("A:Q").AutoFit
+    
+Next ws
+  
+End Sub
+
+
+
